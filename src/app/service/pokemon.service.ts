@@ -7,6 +7,24 @@ export type Pokemon = {
   url: string;
   isFavourite: boolean;
 };
+
+export type PokemonDetail = Pokemon & {
+  id: number;
+  abilities: {
+    ability: {
+      name: string;
+      url: string;
+    };
+    is_hidden: boolean;
+    slot: number;
+  }[];
+
+  forms: {
+    name: string;
+    url: string;
+  }[];
+};
+
 export type PokemonPage = {
   count: number;
   next?: string;
@@ -22,11 +40,11 @@ export type User = {
 @Injectable({
   providedIn: 'root',
 })
-export class PokemonService implements IPokemonService {
+export class PokemonService {
   private httpClient = inject(HttpClient);
 
-  public getPokemon(name: string): Observable<Pokemon> {
-    return this.httpClient.get<Pokemon>(
+  public getPokemon(name: string): Observable<PokemonDetail> {
+    return this.httpClient.get<PokemonDetail>(
       `http://localhost:3000/pokemon/${name}`,
     );
   }
@@ -44,11 +62,4 @@ export class PokemonService implements IPokemonService {
   public setPokemonAsFavourite(name: string): Observable<void> {
     throw new Error('Method not implemented.');
   }
-}
-
-interface IPokemonService {
-  getPokemon(name: string): Observable<Pokemon>;
-  getCurrentUser(): Observable<User>;
-  getAllPokemon(): Observable<PokemonPage>;
-  setPokemonAsFavourite(name: string): Observable<void>;
 }
