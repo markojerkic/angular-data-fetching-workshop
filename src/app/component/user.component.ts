@@ -1,6 +1,7 @@
 import { Component, inject } from '@angular/core';
 import { PokemonService } from '../service/pokemon.service';
 import { AsyncPipe } from '@angular/common';
+import { RouterLink } from '@angular/router';
 
 @Component({
   selector: 'app-user-skeleton',
@@ -26,9 +27,12 @@ export class UserSkeletonComponent {}
         <span>
           @if (user.favourite; as favourite) {
             Najdraži:
-            <span class="font-semibold text-green-800">
+            <a
+              [routerLink]="['/pokemon', favourite]"
+              class="font-semibold text-green-800 hover:underline underline-offset-2"
+            >
               {{ favourite }}
-            </span>
+            </a>
           } @else {
             Nema najdražeg još
           }
@@ -37,7 +41,7 @@ export class UserSkeletonComponent {}
     </div>
   `,
   standalone: true,
-  imports: [AsyncPipe],
+  imports: [AsyncPipe, RouterLink],
 })
 export class UserComponent {
   private pokemonService = inject(PokemonService);
