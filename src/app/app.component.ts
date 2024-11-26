@@ -1,37 +1,7 @@
 import { Component } from '@angular/core';
-
-@Component({
-  selector: 'app-user',
-  template: `
-    <div class="rounded-md bg-user p-4 border border-black h-full">
-      <span>Marko Jerkiić</span>
-    </div>
-  `,
-  standalone: true,
-})
-export class UserComponent {}
-
-@Component({
-  selector: 'app-pokemon-detail',
-  template: `
-    <div class="h-full rounded-md bg-detail p-4 border border-black">
-      <span>Raichu</span>
-    </div>
-  `,
-  standalone: true,
-})
-export class PokemonDetailComponent {}
-
-@Component({
-  selector: 'app-pokemon-list',
-  template: `
-    <div class="h-full rounded-md bg-list p-4 border border-black">
-      <span>Pokemoni</span>
-    </div>
-  `,
-  standalone: true,
-})
-export class PokemonListComponent {}
+import { UserComponent } from './component/user.component';
+import { PokemonListComponent } from './component/pokemon-list.component';
+import { PokemonDetailComponent } from './component/pokemon-detail.component';
 
 @Component({
   selector: 'app-root',
