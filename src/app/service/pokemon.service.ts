@@ -60,6 +60,8 @@ export class PokemonService {
   }
 
   public setPokemonAsFavourite(name: string): Observable<void> {
-    throw new Error('Method not implemented.');
+    return this.httpClient.post<void>('http://localhost:3000/favourite', {
+      favourite: name,
+    });
   }
 }

@@ -4,7 +4,15 @@ import { cors } from 'hono/cors';
 const app = new Hono();
 app.use(cors());
 
-const favourite: string | null = null;
+async function getFavouritePokemon(): Promise<string | undefined> {
+  return Bun.file('favourite.json')
+    .text()
+    .then((file) => JSON.parse(file).favourite);
+}
+
+async function setFavouritePokemon(name: string): Promise<void> {
+  await Bun.write('favourite.json', JSON.stringify({ favourite: name }));
+}
 
 type PokemonResult = {
   count: number;
@@ -15,6 +23,7 @@ type PokemonResult = {
 
 app
   .get('/pokemon', async (c) => {
+    const favourite = await getFavouritePokemon();
     const offset = c.req.query('offset');
 
     const pokemon = await fetch(
@@ -34,6 +43,7 @@ app
     return c.json(pokemon);
   })
   .get('/pokemon/:id', async (c) => {
+    const favourite = await getFavouritePokemon();
     const pokemon: Record<string, unknown> = await fetch(
       `https://pokeapi.co/api/v2/pokemon/${c.req.param('id')}`,
     )
@@ -46,10 +56,20 @@ app
       });
 
     return c.json(pokemon);
-  });
+  })
+  .get('/user', async (c) => {
+    const favourite = await getFavouritePokemon();
+    return c.json({
+      user: 'Marko Jerkić',
+      favourite: favourite,
+    });
+  })
+  .post('/favourite', async (c) => {
+    const body: { favourite: string } = await c.req.parseBody();
 
-app.get('/user', async (c) => {
-  return c.json({ user: 'Marko Jerkić', favourite });
-});
+    await setFavouritePokemon(body.favourite);
+
+    return c.json({ message: 'Pokemon set as favourite' });
+  });
 
 export default app;

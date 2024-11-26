@@ -63,10 +63,15 @@ export class PokemonListItemComponent {
           @if (!$last) {
             <hr />
           }
+        } @empty {
+          <app-pokemon-list-skeleton />
         }
       </ul>
 
-      <button class="mt-4 rounded-md border border-black p-2 bg-violet-300">
+      <button
+        (click)="loadMore()"
+        class="mt-4 rounded-md border border-black p-2 bg-violet-300"
+      >
         Učitaj još
       </button>
     </div>
@@ -88,4 +93,8 @@ export class PokemonListComponent {
   private pokemonService = inject(PokemonService);
 
   public pokemon$ = this.pokemonService.getAllPokemon();
+
+  public loadMore() {
+    alert('Kako???');
+  }
 }

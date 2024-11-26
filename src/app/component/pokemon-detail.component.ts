@@ -2,7 +2,35 @@ import { Component, inject, input } from '@angular/core';
 import { PokemonDetail, PokemonService } from '../service/pokemon.service';
 import { ActivatedRoute } from '@angular/router';
 import { switchMap } from 'rxjs';
-import { AsyncPipe, JsonPipe } from '@angular/common';
+import { AsyncPipe } from '@angular/common';
+
+@Component({
+  selector: 'app-pokemon-detail-skeleton',
+  template: `
+    <div class="h-10 rounded-xl bg-gray-300 animate-pulse bg-opacity-70"></div>
+
+    <img
+      class="mx-auto bg-gray-300 animate-pulse bg-opacity-70 my-2"
+      height="250"
+      width="250"
+    />
+
+    <h2 class="h-10 rounded-xl bg-gray-300 animate-pulse bg-opacity-70"></h2>
+    <ul class="pl-2">
+      <li
+        class="h-8 rounded-xl bg-gray-300 animate-pulse bg-opacity-70 mt-2"
+      ></li>
+      <li
+        class="h-8 rounded-xl bg-gray-300 animate-pulse bg-opacity-70 mt-2"
+      ></li>
+      <li
+        class="h-8 rounded-xl bg-gray-300 animate-pulse bg-opacity-70 mt-2"
+      ></li>
+    </ul>
+  `,
+  standalone: true,
+})
+export class PokemonDetailSkeletonComponent {}
 
 @Component({
   selector: 'app-pokemon-detail-view',
@@ -51,11 +79,24 @@ export class PokemonDetailViewComponent {
     <div class="h-full rounded-md bg-detail p-4 border border-black bloc">
       @if (pokemon$ | async; as pokemon) {
         <app-pokemon-detail-view [pokemon]="pokemon" />
+
+        <button
+          class="mt-4 self-end bg-blue-500 hover:bg-blue-600 text-white rounded-md p-2"
+          (click)="markAsFavourite(pokemon.name)"
+        >
+          Označi kao omiljenog
+        </button>
+      } @else {
+        <app-pokemon-detail-skeleton />
       }
     </div>
   `,
   standalone: true,
-  imports: [AsyncPipe, PokemonDetailViewComponent],
+  imports: [
+    AsyncPipe,
+    PokemonDetailViewComponent,
+    PokemonDetailSkeletonComponent,
+  ],
 })
 export class PokemonDetailComponent {
   private pokemonService = inject(PokemonService);
@@ -65,7 +106,9 @@ export class PokemonDetailComponent {
     switchMap((params) => this.pokemonService.getPokemon(params['id'])),
   );
 
-  public getSprite(id: number) {
-    return `https://raw.githubusercontent.com/PokeAPI/sprites/master/sprites/pokemon/${id}.png`;
+  public markAsFavourite(name: string) {
+    this.pokemonService.setPokemonAsFavourite(name).subscribe(() => {
+      alert('Pokemon set as favourite');
+    });
   }
 }
