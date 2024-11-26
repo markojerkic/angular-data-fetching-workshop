@@ -65,8 +65,7 @@ app
     });
   })
   .post('/favourite', async (c) => {
-    const body: { favourite: string } = await c.req.parseBody();
-
+    const body: { favourite: string } = await c.req.json();
     await setFavouritePokemon(body.favourite);
 
     return c.json({ message: 'Pokemon set as favourite' });

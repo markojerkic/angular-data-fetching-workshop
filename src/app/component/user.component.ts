@@ -25,7 +25,10 @@ export class UserSkeletonComponent {}
 
         <span>
           @if (user.favourite; as favourite) {
-            Najdraži: {{ favourite }}
+            Najdraži:
+            <span class="font-semibold text-green-800">
+              {{ favourite }}
+            </span>
           } @else {
             Nema najdražeg još
           }

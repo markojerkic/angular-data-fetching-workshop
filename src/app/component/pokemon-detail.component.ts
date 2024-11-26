@@ -36,6 +36,10 @@ export class PokemonDetailSkeletonComponent {}
   selector: 'app-pokemon-detail-view',
   template: `
     <h1 class="font-bold text-2xl">{{ pokemon().name }}</h1>
+    @if (pokemon().isFavourite) {
+      <span class="text-sm text-green-800">Omiljeni</span>
+    }
+
     <img
       [src]="getSprite(pokemon().id)"
       class="mx-auto"

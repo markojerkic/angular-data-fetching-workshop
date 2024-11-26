@@ -37,12 +37,20 @@ export class PokemonListSkeletonComponent {}
     <li class="flex justify-between items-center">
       <span>{{ pokemon().name }}</span>
 
-      <a
-        class="rounded-md border border-black p-2"
-        [routerLink]="['/pokemon', pokemon().name]"
-      >
-        Pogledaj
-      </a>
+      <span class="flex justify-end text-center items-center gap-2">
+        @if (pokemon().isFavourite) {
+          <span class="text-sm text-green-800">Omiljeni</span>
+        } @else {
+          <span class="text-sm text-rose-800">Nije omiljeni</span>
+        }
+
+        <a
+          class="rounded-md border border-black p-2"
+          [routerLink]="['/pokemon', pokemon().name]"
+        >
+          Pogledaj
+        </a>
+      </span>
     </li>
   `,
   standalone: true,
