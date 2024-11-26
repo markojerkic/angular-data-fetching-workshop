@@ -31,25 +31,24 @@ export class PokemonService implements IPokemonService {
     );
   }
 
-  public getCurrentUser(): Observable<{
-    user: User;
-    favouritePokemon: Pokemon;
-  }> {
-    throw new Error('Method not implemented.');
+  public getCurrentUser(): Observable<User> {
+    return this.httpClient.get<{ user: string; favourite: string | null }>(
+      `http://localhost:3000/user`,
+    );
   }
 
   public getAllPokemon(): Observable<PokemonPage> {
     return this.httpClient.get<PokemonPage>('http://localhost:3000/pokemon');
   }
 
-  public setPokemonAsFavourite(id: number): Observable<void> {
+  public setPokemonAsFavourite(name: string): Observable<void> {
     throw new Error('Method not implemented.');
   }
 }
 
 interface IPokemonService {
   getPokemon(name: string): Observable<Pokemon>;
-  getCurrentUser(): Observable<{ user: User; favouritePokemon: Pokemon }>;
+  getCurrentUser(): Observable<User>;
   getAllPokemon(): Observable<PokemonPage>;
-  setPokemonAsFavourite(id: number): Observable<void>;
+  setPokemonAsFavourite(name: string): Observable<void>;
 }

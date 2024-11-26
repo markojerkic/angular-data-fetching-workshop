@@ -1,18 +1,10 @@
 import { Component } from '@angular/core';
-import { UserComponent } from './component/user.component';
-import { PokemonListComponent } from './component/pokemon-list.component';
-import { PokemonDetailComponent } from './component/pokemon-detail.component';
+import { RouterOutlet } from '@angular/router';
 
 @Component({
   selector: 'app-root',
-  template: `
-    <div class="grid grid-rows-5 grid-cols-2 max-w-[70rem] mx-auto p-4 gap-10">
-      <app-user />
-      <app-pokemon-detail class="row-span-5 " />
-      <app-pokemon-list class="row-span-4 h-full" />
-    </div>
-  `,
+  template: ` <router-outlet /> `,
   standalone: true,
-  imports: [PokemonListComponent, PokemonDetailComponent, UserComponent],
+  imports: [RouterOutlet],
 })
 export class AppComponent {}

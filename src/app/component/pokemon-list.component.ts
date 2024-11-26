@@ -3,7 +3,6 @@ import { Pokemon, PokemonService } from '../service/pokemon.service';
 import { AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
-// Skeleton for pokemon list
 @Component({
   selector: 'app-pokemon-list-skeleton',
   template: `
