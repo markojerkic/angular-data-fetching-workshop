@@ -29,15 +29,16 @@ type PokemonResult = {
 app
   .get('/pokemon', async (c) => {
     const favourite = await getFavouritePokemon();
-    const offset = c.req.query('offset');
+    const offset = parseInt(c.req.query('offset') ?? '0', 10);
 
     const pokemon = await fetch(
-      `https://pokeapi.co/api/v2/pokemon?limit=10&offset=${offset ?? 0}`,
+      `https://pokeapi.co/api/v2/pokemon?limit=10&offset=${offset}`,
     )
       .then((res) => res.json())
       .then((res: PokemonResult) => {
         return {
           ...res,
+          next: offset + 10,
           results: res.results.map((pokemon) => ({
             ...pokemon,
             isFavourite: pokemon.name === favourite,

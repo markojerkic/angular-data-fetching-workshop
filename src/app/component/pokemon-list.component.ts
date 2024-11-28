@@ -3,7 +3,7 @@ import { Pokemon, PokemonService } from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
 import { JsonPipe } from '@angular/common';
 import { lastValueFrom } from 'rxjs';
-import { injectQuery } from '@tanstack/angular-query-experimental';
+import { injectInfiniteQuery } from '@tanstack/angular-query-experimental';
 
 @Component({
   selector: 'app-pokemon-list-skeleton',
@@ -72,10 +72,13 @@ export class PokemonListItemComponent {
         } @else if (pokemon.isError()) {
           <span class="text-red-800">{{ pokemon.error() | json }}</span>
         } @else if (pokemon.isSuccess()) {
-          @for (pokemon of pokemon.data().results; track pokemon.name) {
-            <app-pokemon-list-item [pokemon]="pokemon" />
-            @if (!$last) {
-              <hr />
+          @for (page of pokemon.data()?.pages; track page) {
+            @let lastPage = $last;
+            @for (pokemon of page.results; track pokemon.name) {
+              <app-pokemon-list-item [pokemon]="pokemon" />
+              @if (!$last || !lastPage) {
+                <hr />
+              }
             }
           }
         }
@@ -105,12 +108,16 @@ export class PokemonListItemComponent {
 export class PokemonListComponent {
   private pokemonService = inject(PokemonService);
 
-  public pokemon = injectQuery(() => ({
+  public pokemon = injectInfiniteQuery(() => ({
     queryKey: ['pokemon', 'pokemon-list'],
-    queryFn: () => lastValueFrom(this.pokemonService.getAllPokemon()),
+    queryFn: ({ pageParam }) => {
+      return lastValueFrom(this.pokemonService.getAllPokemon(pageParam));
+    },
+    initialPageParam: 0,
+    getNextPageParam: (lastPage) => lastPage.next,
   }));
 
   public loadMore() {
-    alert('Kako???');
+    this.pokemon.fetchNextPage();
   }
 }

@@ -27,8 +27,7 @@ export type PokemonDetail = Pokemon & {
 
 export type PokemonPage = {
   count: number;
-  next?: string;
-  previous?: string;
+  next?: number;
   results: Pokemon[];
 };
 
@@ -55,8 +54,12 @@ export class PokemonService {
     );
   }
 
-  public getAllPokemon(): Observable<PokemonPage> {
-    return this.httpClient.get<PokemonPage>('http://localhost:3000/pokemon');
+  public getAllPokemon(offset?: number): Observable<PokemonPage> {
+    return this.httpClient.get<PokemonPage>('http://localhost:3000/pokemon', {
+      params: {
+        offset: offset ?? 0,
+      },
+    });
   }
 
   public setPokemonAsFavourite(name: string): Observable<void> {
