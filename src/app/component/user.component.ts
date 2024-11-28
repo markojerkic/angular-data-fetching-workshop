@@ -1,4 +1,4 @@
-import { Component, inject, input } from '@angular/core';
+import { Component, inject, input, OnInit } from '@angular/core';
 import { PokemonService, User } from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
 
@@ -17,21 +17,25 @@ export class UserSkeletonComponent {}
 @Component({
   selector: 'app-user-view',
   template: `
-    <span class="font-bold text-xl">{{ user().user }}</span>
+    <div
+      class="rounded-md bg-user p-4 border border-black h-full flex flex-col justify-around"
+    >
+      <span class="font-bold text-xl">{{ user().user }}</span>
 
-    <span>
-      @if (user().favourite; as favourite) {
-        Najdraži:
-        <a
-          [routerLink]="['/pokemon', favourite]"
-          class="font-semibold text-green-800 hover:underline underline-offset-2"
-        >
-          {{ favourite }}
-        </a>
-      } @else {
-        Nema najdražeg još
-      }
-    </span>
+      <span>
+        @if (user().favourite; as favourite) {
+          Najdraži:
+          <a
+            [routerLink]="['/pokemon', favourite]"
+            class="font-semibold text-green-800 hover:underline underline-offset-2"
+          >
+            {{ favourite }}
+          </a>
+        } @else {
+          Nema najdražeg još
+        }
+      </span>
+    </div>
   `,
   standalone: true,
   imports: [RouterLink],
@@ -43,16 +47,21 @@ export class UserViewComponent {
 @Component({
   selector: 'app-user',
   template: `
-    <div
-      class="rounded-md bg-user p-4 border border-black h-full flex flex-col justify-around"
-    ></div>
+    @if (user) {
+      <app-user-view [user]="user"></app-user-view>
+    }
   `,
   standalone: true,
   imports: [UserSkeletonComponent, UserViewComponent],
 })
-export class UserComponent {
+export class UserComponent implements OnInit {
   private pokemonService = inject(PokemonService);
 
-  // Trebamo koristiti funkciju this.pokemonService.getCurrentUser()
-  // @result {Observable<User>}
+  public user: User | null = null;
+
+  ngOnInit() {
+    this.pokemonService.getCurrentUser().subscribe((user) => {
+      this.user = user;
+    });
+  }
 }

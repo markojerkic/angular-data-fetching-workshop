@@ -1,5 +1,9 @@
-import { Component, inject, input } from '@angular/core';
-import { Pokemon, PokemonService } from '../service/pokemon.service';
+import { Component, inject, input, OnInit } from '@angular/core';
+import {
+  Pokemon,
+  PokemonPage,
+  PokemonService,
+} from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -64,7 +68,12 @@ export class PokemonListItemComponent {
   template: `
     <div class="h-full rounded-md bg-list p-4 border border-black">
       <ul class="flex flex-col gap-2">
-        <!--<app-pokemon-list-item [pokemon]="..." />-->
+        @for (pokemon of pokemon?.results; track pokemon.name) {
+          <app-pokemon-list-item [pokemon]="pokemon" />
+          @if (!$last) {
+            <hr />
+          }
+        }
       </ul>
 
       <button
@@ -88,11 +97,16 @@ export class PokemonListItemComponent {
   standalone: true,
   imports: [PokemonListItemComponent, PokemonListSkeletonComponent],
 })
-export class PokemonListComponent {
+export class PokemonListComponent implements OnInit {
   private pokemonService = inject(PokemonService);
 
-  // Trebamo koristiti metodu this.pokemonService.getAllPokemon()
-  // @result {Observable<PokemonPage>}
+  public pokemon: PokemonPage | null = null;
+
+  ngOnInit() {
+    this.pokemonService.getAllPokemon().subscribe((pokemon) => {
+      this.pokemon = pokemon;
+    });
+  }
 
   public loadMore() {
     alert('Kako???');
