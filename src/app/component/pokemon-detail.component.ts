@@ -2,6 +2,7 @@ import { Component, inject, input, OnInit } from '@angular/core';
 import { PokemonDetail, PokemonService } from '../service/pokemon.service';
 import { ActivatedRoute } from '@angular/router';
 import { JsonPipe } from '@angular/common';
+import { switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-pokemon-detail-skeleton',
@@ -111,17 +112,22 @@ export class PokemonDetailComponent implements OnInit {
   public error = null;
 
   ngOnInit() {
-    this.pokemonService.getPokemon(this.route.snapshot.params['id']).subscribe({
-      next: (pokemon) => {
-        this.pokemonDetail = pokemon;
-      },
-      error: (error) => {
-        this.error = error;
-      },
-      complete: () => {
-        this.loading = false;
-      },
-    });
+    this.route.params
+      .pipe(
+        switchMap((params) => {
+          return this.pokemonService.getPokemon(params['id']);
+        }),
+      )
+      .subscribe({
+        next: (pokemon) => {
+          this.pokemonDetail = pokemon;
+          this.loading = false;
+        },
+        error: (error) => {
+          this.error = error;
+          this.loading = false;
+        },
+      });
   }
 
   public markAsFavourite(name: string) {
