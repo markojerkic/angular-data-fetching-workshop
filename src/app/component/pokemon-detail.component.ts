@@ -1,6 +1,7 @@
 import { Component, inject, input, OnInit } from '@angular/core';
 import { PokemonDetail, PokemonService } from '../service/pokemon.service';
 import { ActivatedRoute } from '@angular/router';
+import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-pokemon-detail-skeleton',
@@ -79,7 +80,11 @@ export class PokemonDetailViewComponent {
   selector: 'app-pokemon-detail',
   template: `
     <div class="h-full rounded-md bg-detail p-4 border border-black bloc">
-      @if (pokemonDetail) {
+      @if (loading) {
+        <app-pokemon-detail-skeleton />
+      } @else if (error) {
+        <span class="text-red-800">{{ error | json }}</span>
+      } @else if (pokemonDetail) {
         <app-pokemon-detail-view [pokemon]="pokemonDetail" />
         <button
           class="mt-4 self-end bg-blue-500 hover:bg-blue-600 text-white rounded-md p-2"
@@ -91,20 +96,32 @@ export class PokemonDetailViewComponent {
     </div>
   `,
   standalone: true,
-  imports: [PokemonDetailViewComponent, PokemonDetailSkeletonComponent],
+  imports: [
+    PokemonDetailViewComponent,
+    PokemonDetailSkeletonComponent,
+    JsonPipe,
+  ],
 })
 export class PokemonDetailComponent implements OnInit {
   private pokemonService = inject(PokemonService);
   private route = inject(ActivatedRoute);
 
   public pokemonDetail: PokemonDetail | null = null;
+  public loading = true;
+  public error = null;
 
   ngOnInit() {
-    this.pokemonService
-      .getPokemon(this.route.snapshot.params['id'])
-      .subscribe((pokemon) => {
+    this.pokemonService.getPokemon(this.route.snapshot.params['id']).subscribe({
+      next: (pokemon) => {
         this.pokemonDetail = pokemon;
-      });
+      },
+      error: (error) => {
+        this.error = error;
+      },
+      complete: () => {
+        this.loading = false;
+      },
+    });
   }
 
   public markAsFavourite(name: string) {

@@ -1,6 +1,7 @@
 import { Component, inject, input, OnInit } from '@angular/core';
 import { PokemonService, User } from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
+import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-user-skeleton',
@@ -47,21 +48,35 @@ export class UserViewComponent {
 @Component({
   selector: 'app-user',
   template: `
-    @if (user) {
+    @if (loading) {
+      <app-user-skeleton />
+    } @else if (error) {
+      <span class="text-red-800">{{ error | json }}</span>
+    } @else if (user) {
       <app-user-view [user]="user"></app-user-view>
     }
   `,
   standalone: true,
-  imports: [UserSkeletonComponent, UserViewComponent],
+  imports: [UserSkeletonComponent, UserViewComponent, JsonPipe],
 })
 export class UserComponent implements OnInit {
   private pokemonService = inject(PokemonService);
 
   public user: User | null = null;
+  public loading = true;
+  public error = null;
 
   ngOnInit() {
-    this.pokemonService.getCurrentUser().subscribe((user) => {
-      this.user = user;
+    this.pokemonService.getCurrentUser().subscribe({
+      next: (user) => {
+        this.user = user;
+      },
+      error: (error) => {
+        this.error = error;
+      },
+      complete: () => {
+        this.loading = false;
+      },
     });
   }
 }

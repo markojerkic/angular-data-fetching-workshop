@@ -5,6 +5,7 @@ import {
   PokemonService,
 } from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
+import { JsonPipe } from '@angular/common';
 
 @Component({
   selector: 'app-pokemon-list-skeleton',
@@ -68,10 +69,16 @@ export class PokemonListItemComponent {
   template: `
     <div class="h-full rounded-md bg-list p-4 border border-black">
       <ul class="flex flex-col gap-2">
-        @for (pokemon of pokemon?.results; track pokemon.name) {
-          <app-pokemon-list-item [pokemon]="pokemon" />
-          @if (!$last) {
-            <hr />
+        @if (loading) {
+          <app-pokemon-list-skeleton />
+        } @else if (error) {
+          <span class="text-red-800">{{ error | json }}</span>
+        } @else if (pokemon) {
+          @for (pokemon of pokemon.results; track pokemon.name) {
+            <app-pokemon-list-item [pokemon]="pokemon" />
+            @if (!$last) {
+              <hr />
+            }
           }
         }
       </ul>
@@ -95,16 +102,26 @@ export class PokemonListItemComponent {
     }
   `,
   standalone: true,
-  imports: [PokemonListItemComponent, PokemonListSkeletonComponent],
+  imports: [PokemonListItemComponent, PokemonListSkeletonComponent, JsonPipe],
 })
 export class PokemonListComponent implements OnInit {
   private pokemonService = inject(PokemonService);
 
   public pokemon: PokemonPage | null = null;
+  public loading = true;
+  public error = null;
 
   ngOnInit() {
-    this.pokemonService.getAllPokemon().subscribe((pokemon) => {
-      this.pokemon = pokemon;
+    this.pokemonService.getAllPokemon().subscribe({
+      next: (pokemon) => {
+        this.pokemon = pokemon;
+      },
+      error: (error) => {
+        this.error = error;
+      },
+      complete: () => {
+        this.loading = false;
+      },
     });
   }
 
