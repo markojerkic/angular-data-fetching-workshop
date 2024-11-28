@@ -1,59 +1,37 @@
-# AngularDataFetching
+# Zašto je HTTP sloj u vašoj Angular aplikaciji loš?
 
-This project was generated using [Angular CLI](https://github.com/angular/angular-cli) version 19.0.2.
+![Zašto je HTTP sloj u vašoj Angular aplikaciji loš?](./header.svg)
 
-## Development server
+Radionica prati [članak koji sam napisao na istu temu.](https://jerkic.dev/hr/blog/angular-data-loading/)
 
-To start a local development server, run:
+https://github.com/markojerkic/angular-data-fetching-workshop/tree/
+Primljeno je više grana koje predstavljaju različite korake radionice.
+-  [1-rezultat-upita-kao-property-razreda](https://github.com/markojerkic/angular-data-fetching-workshop/tree/1-rezultat-upita-kao-property-razreda)
+-  [2-indikatori-učitavanja-i-grešaka](https://github.com/markojerkic/angular-data-fetching-workshop/tree/)
+-  [3-promjena-rute](https://github.com/markojerkic/angular-data-fetching-workshop/tree/3-promjena-rute)
+-  [4-nezeljene-nuspojave](https://github.com/markojerkic/angular-data-fetching-workshop/tree/4-nezeljene-nuspojave)
+-  [5-tanstack-query](https://github.com/markojerkic/angular-data-fetching-workshop/tree/5-tanstack-query)
+-  [6-infinite-query](https://github.com/markojerkic/angular-data-fetching-workshop/tree/6-infinite-query)
+-  [7-poboljsanja](https://github.com/markojerkic/angular-data-fetching-workshop/tree/7-poboljsanja)
 
-```bash
-ng serve
+## Kako pokrenuti radionicu?
+
+Za backend dio sam iskoristio [Bun](https://bun.sh), ali samo zato jer sam lijen bio da koristim Node fs API.
+
+Ili instalirajte [Bun](https://bun.sh), pa `bun install && bun dev`, ili zamijenite `getFavouritePokemon` i `setFavouritePokemon` funkcije da koriste Node fs API.
+
+```ts
+import { writeFile, readFile } from 'fs/promises';
+
+async function setFavouritePokemon(pokemon: string): Promise<void> {
+  return writeFile('favourite.json', JSON.stringify({ favourite: pokemon }));
+}
+async function getFavouritePokemon(): Promise<string> {
+  const data = await readFile('favourite.json', 'utf-8');
+  return JSON.parse(data).favourite;
+}
 ```
 
-Once the server is running, open your browser and navigate to `http://localhost:4200/`. The application will automatically reload whenever you modify any of the source files.
+Nažalost, previše sam lijen da to ispravim sada na svih 7 grana.
 
-## Code scaffolding
-
-Angular CLI includes powerful code scaffolding tools. To generate a new component, run:
-
-```bash
-ng generate component component-name
-```
-
-For a complete list of available schematics (such as `components`, `directives`, or `pipes`), run:
-
-```bash
-ng generate --help
-```
-
-## Building
-
-To build the project run:
-
-```bash
-ng build
-```
-
-This will compile your project and store the build artifacts in the `dist/` directory. By default, the production build optimizes your application for performance and speed.
-
-## Running unit tests
-
-To execute unit tests with the [Karma](https://karma-runner.github.io) test runner, use the following command:
-
-```bash
-ng test
-```
-
-## Running end-to-end tests
-
-For end-to-end (e2e) testing, run:
-
-```bash
-ng e2e
-```
-
-Angular CLI does not come with an end-to-end testing framework by default. You can choose one that suits your needs.
-
-## Additional Resources
-
-For more information on using the Angular CLI, including detailed command references, visit the [Angular CLI Overview and Command Reference](https://angular.dev/tools/cli) page.
+Ako ipak zamijenite implementaciju funkcija, možete koristiti `npm install && npm run dev` za pokretanje aplikacije.
