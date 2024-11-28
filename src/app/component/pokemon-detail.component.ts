@@ -1,8 +1,6 @@
 import { Component, inject, input } from '@angular/core';
 import { PokemonDetail, PokemonService } from '../service/pokemon.service';
 import { ActivatedRoute } from '@angular/router';
-import { switchMap } from 'rxjs';
-import { AsyncPipe } from '@angular/common';
 
 @Component({
   selector: 'app-pokemon-detail-skeleton',
@@ -81,38 +79,25 @@ export class PokemonDetailViewComponent {
   selector: 'app-pokemon-detail',
   template: `
     <div class="h-full rounded-md bg-detail p-4 border border-black bloc">
-      @if (pokemon$ | async; as pokemon) {
-        <app-pokemon-detail-view [pokemon]="pokemon" />
+      <!--<app-pokemon-detail-view [pokemon]="..." />-->
 
-        <button
-          class="mt-4 self-end bg-blue-500 hover:bg-blue-600 text-white rounded-md p-2"
-          (click)="markAsFavourite(pokemon.name)"
-        >
-          Označi kao omiljenog
-        </button>
-      } @else {
-        <app-pokemon-detail-skeleton />
-      }
+      <button
+        class="mt-4 self-end bg-blue-500 hover:bg-blue-600 text-white rounded-md p-2"
+      >
+        Označi kao omiljenog
+      </button>
     </div>
   `,
   standalone: true,
-  imports: [
-    AsyncPipe,
-    PokemonDetailViewComponent,
-    PokemonDetailSkeletonComponent,
-  ],
+  imports: [PokemonDetailViewComponent, PokemonDetailSkeletonComponent],
 })
 export class PokemonDetailComponent {
   private pokemonService = inject(PokemonService);
   private route = inject(ActivatedRoute);
 
-  public pokemon$ = this.route.params.pipe(
-    switchMap((params) => this.pokemonService.getPokemon(params['id'])),
-  );
+  // Trebamo koristiti metodu  this.pokemonService.getPokemon()
+  // @param {string} id
+  // @result {Observable<PokemonDetail>}
 
-  public markAsFavourite(name: string) {
-    this.pokemonService.setPokemonAsFavourite(name).subscribe(() => {
-      alert('Pokemon set as favourite');
-    });
-  }
+  public markAsFavourite(name: string) {}
 }

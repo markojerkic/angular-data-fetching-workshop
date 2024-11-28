@@ -1,6 +1,5 @@
 import { Component, inject, input } from '@angular/core';
 import { Pokemon, PokemonService } from '../service/pokemon.service';
-import { AsyncPipe } from '@angular/common';
 import { RouterLink } from '@angular/router';
 
 @Component({
@@ -65,15 +64,7 @@ export class PokemonListItemComponent {
   template: `
     <div class="h-full rounded-md bg-list p-4 border border-black">
       <ul class="flex flex-col gap-2">
-        @for (pokemon of (pokemon$ | async)?.results; track pokemon.name) {
-          <app-pokemon-list-item [pokemon]="pokemon" />
-
-          @if (!$last) {
-            <hr />
-          }
-        } @empty {
-          <app-pokemon-list-skeleton />
-        }
+        <!--<app-pokemon-list-item [pokemon]="..." />-->
       </ul>
 
       <button
@@ -95,12 +86,13 @@ export class PokemonListItemComponent {
     }
   `,
   standalone: true,
-  imports: [AsyncPipe, PokemonListItemComponent, PokemonListSkeletonComponent],
+  imports: [PokemonListItemComponent, PokemonListSkeletonComponent],
 })
 export class PokemonListComponent {
   private pokemonService = inject(PokemonService);
 
-  public pokemon$ = this.pokemonService.getAllPokemon();
+  // Trebamo koristiti metodu this.pokemonService.getAllPokemon()
+  // @result {Observable<PokemonPage>}
 
   public loadMore() {
     alert('Kako???');
