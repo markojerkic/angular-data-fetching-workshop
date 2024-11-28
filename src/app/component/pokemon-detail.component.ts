@@ -1,5 +1,9 @@
 import { Component, inject, input } from '@angular/core';
-import { PokemonDetail, PokemonService } from '../service/pokemon.service';
+import {
+  PokemonDetail,
+  PokemonService,
+  User,
+} from '../service/pokemon.service';
 import { JsonPipe } from '@angular/common';
 import { lastValueFrom } from 'rxjs';
 import { injectRouterParam } from '../util/router';
@@ -133,10 +137,24 @@ export class PokemonDetailComponent {
     },
     onSuccess: () => {
       this.queryClient.invalidateQueries({
-        queryKey: ['pokemon'],
+        queryKey: ['pokemon-list'],
       });
-      this.queryClient.invalidateQueries({
-        queryKey: ['user'],
+
+      this.queryClient.setQueryData(
+        ['pokemon', `pokemon-${this.pokemonId()}`],
+        (data: PokemonDetail) => {
+          return {
+            ...data,
+            isFavourite: true,
+          };
+        },
+      );
+
+      this.queryClient.setQueryData(['user'], (data: User) => {
+        return {
+          ...data,
+          favourite: this.pokemonId(),
+        };
       });
     },
   }));
