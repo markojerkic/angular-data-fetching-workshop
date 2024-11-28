@@ -1,8 +1,9 @@
-import { Component, inject, input, OnInit } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { Pokemon, PokemonService } from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
-import { AsyncPipe, JsonPipe } from '@angular/common';
-import { BehaviorSubject, catchError, finalize, of, tap } from 'rxjs';
+import { JsonPipe } from '@angular/common';
+import { lastValueFrom } from 'rxjs';
+import { injectQuery } from '@tanstack/angular-query-experimental';
 
 @Component({
   selector: 'app-pokemon-list-skeleton',
@@ -66,14 +67,12 @@ export class PokemonListItemComponent {
   template: `
     <div class="h-full rounded-md bg-list p-4 border border-black">
       <ul class="flex flex-col gap-2">
-        @if (loading$ | async) {
+        @if (pokemon.isPending()) {
           <app-pokemon-list-skeleton />
-        }
-        @if (error$ | async; as error) {
-          <span class="text-red-800">{{ error | json }}</span>
-        }
-        @if (pokemon$ | async; as pokemon) {
-          @for (pokemon of pokemon.results; track pokemon.name) {
+        } @else if (pokemon.isError()) {
+          <span class="text-red-800">{{ pokemon.error() | json }}</span>
+        } @else if (pokemon.isSuccess()) {
+          @for (pokemon of pokemon.data().results; track pokemon.name) {
             <app-pokemon-list-item [pokemon]="pokemon" />
             @if (!$last) {
               <hr />
@@ -101,28 +100,15 @@ export class PokemonListItemComponent {
     }
   `,
   standalone: true,
-  imports: [
-    PokemonListItemComponent,
-    PokemonListSkeletonComponent,
-    JsonPipe,
-    AsyncPipe,
-  ],
+  imports: [PokemonListItemComponent, PokemonListSkeletonComponent, JsonPipe],
 })
 export class PokemonListComponent {
   private pokemonService = inject(PokemonService);
 
-  public loading$ = new BehaviorSubject(true);
-  public error$ = new BehaviorSubject(null);
-
-  public pokemon$ = this.pokemonService.getAllPokemon().pipe(
-    catchError((error) => {
-      this.error$.next(error);
-      return of(null);
-    }),
-    finalize(() => {
-      this.loading$.next(false);
-    }),
-  );
+  public pokemon = injectQuery(() => ({
+    queryKey: ['pokemon', 'pokemon-list'],
+    queryFn: () => lastValueFrom(this.pokemonService.getAllPokemon()),
+  }));
 
   public loadMore() {
     alert('Kako???');

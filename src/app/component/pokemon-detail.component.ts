@@ -1,8 +1,13 @@
-import { Component, inject, input, OnInit } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { PokemonDetail, PokemonService } from '../service/pokemon.service';
-import { ActivatedRoute } from '@angular/router';
-import { AsyncPipe, JsonPipe } from '@angular/common';
-import { BehaviorSubject, catchError, finalize, of, switchMap } from 'rxjs';
+import { JsonPipe } from '@angular/common';
+import { lastValueFrom } from 'rxjs';
+import { injectRouterParam } from '../util/router';
+import {
+  injectMutation,
+  injectQuery,
+  injectQueryClient,
+} from '@tanstack/angular-query-experimental';
 
 @Component({
   selector: 'app-pokemon-detail-skeleton',
@@ -81,20 +86,31 @@ export class PokemonDetailViewComponent {
   selector: 'app-pokemon-detail',
   template: `
     <div class="h-full rounded-md bg-detail p-4 border border-black bloc">
-      @if (loading$ | async) {
+      @if (pokemonDetail.isPending()) {
         <app-pokemon-detail-skeleton />
-      }
-      @if (error$ | async; as error) {
-        <span class="text-red-800">{{ error | json }}</span>
-      }
-      @if (pokemonDetail$ | async; as pokemonDetail) {
-        <app-pokemon-detail-view [pokemon]="pokemonDetail" />
-        <button
-          class="mt-4 self-end bg-blue-500 hover:bg-blue-600 text-white rounded-md p-2"
-          (click)="markAsFavourite(pokemonDetail.name)"
-        >
-          Označi kao omiljenog
-        </button>
+      } @else if (pokemonDetail.isError()) {
+        <span class="text-red-800">{{ pokemonDetail.error() | json }}</span>
+      } @else if (pokemonDetail.isSuccess()) {
+        @if (pokemonDetail.data(); as pokemonDetail) {
+          <app-pokemon-detail-view [pokemon]="pokemonDetail" />
+          <button
+            [class]="
+              'mt-4 self-end bg-blue-500 hover:bg-blue-600 text-white rounded-md p-2 ' +
+              (favouriteMutation.isPending()
+                ? 'cursor-not-allowed bg-gray-500'
+                : '')
+            "
+            (click)="markAsFavourite(pokemonDetail.name)"
+          >
+            Označi kao omiljenog
+          </button>
+          @if (favouriteMutation.isError()) {
+            <span class="text-red-800"
+              >Greška kod označavanja favorita:
+              {{ favouriteMutation.error() | json }}</span
+            >
+          }
+        }
       }
     </div>
   `,
@@ -103,34 +119,36 @@ export class PokemonDetailViewComponent {
     PokemonDetailViewComponent,
     PokemonDetailSkeletonComponent,
     JsonPipe,
-    AsyncPipe,
   ],
 })
 export class PokemonDetailComponent {
   private pokemonService = inject(PokemonService);
-  private route = inject(ActivatedRoute);
+  private pokemonId = injectRouterParam('id');
+  private queryClient = injectQueryClient();
 
-  public loading$ = new BehaviorSubject(true);
-  public error$ = new BehaviorSubject(null);
-  public pokemonDetail$ = this.route.params.pipe(
-    switchMap((params) => {
-      this.loading$.next(true);
-      this.error$.next(null);
-      return this.pokemonService.getPokemon(params['id']).pipe(
-        catchError((error) => {
-          this.error$.next(error);
-          return of(null);
-        }),
-        finalize(() => {
-          this.loading$.next(false);
-        }),
-      );
-    }),
-  );
+  public favouriteMutation = injectMutation(() => ({
+    mutationKey: ['favourite'],
+    mutationFn: (name: string) => {
+      return lastValueFrom(this.pokemonService.setPokemonAsFavourite(name));
+    },
+    onSuccess: () => {
+      this.queryClient.invalidateQueries({
+        queryKey: ['pokemon'],
+      });
+      this.queryClient.invalidateQueries({
+        queryKey: ['user'],
+      });
+    },
+  }));
+
+  public pokemonDetail = injectQuery(() => ({
+    queryKey: ['pokemon', `pokemon-${this.pokemonId()}`],
+    queryFn: () =>
+      lastValueFrom(this.pokemonService.getPokemon(this.pokemonId()!)),
+    enabled: !!this.pokemonId(),
+  }));
 
   public markAsFavourite(name: string) {
-    this.pokemonService.setPokemonAsFavourite(name).subscribe(() => {
-      alert('Označeno kao omiljeni');
-    });
+    this.favouriteMutation.mutate(name);
   }
 }

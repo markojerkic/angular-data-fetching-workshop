@@ -1,8 +1,9 @@
 import { Component, inject, input } from '@angular/core';
 import { PokemonService, User } from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
-import { AsyncPipe, JsonPipe } from '@angular/common';
-import { BehaviorSubject, catchError, finalize, of } from 'rxjs';
+import { JsonPipe } from '@angular/common';
+import { lastValueFrom } from 'rxjs';
+import { injectQuery } from '@tanstack/angular-query-experimental';
 
 @Component({
   selector: 'app-user-skeleton',
@@ -53,32 +54,24 @@ export class UserViewComponent {
 @Component({
   selector: 'app-user',
   template: `
-    @if (loading$ | async) {
+    @if (user.isPending()) {
       <app-user-skeleton />
-    }
-    @if (error$ | async; as error) {
-      <span class="text-red-800">{{ error | json }}</span>
-    }
-    @if (user$ | async; as user) {
-      <app-user-view [user]="user"></app-user-view>
+    } @else if (user.isError()) {
+      <span class="text-red-800">{{ user.error() | json }}</span>
+    } @else {
+      @if (user.data(); as user) {
+        <app-user-view [user]="user" />
+      }
     }
   `,
   standalone: true,
-  imports: [UserSkeletonComponent, UserViewComponent, JsonPipe, AsyncPipe],
+  imports: [UserSkeletonComponent, UserViewComponent, JsonPipe],
 })
 export class UserComponent {
   private pokemonService = inject(PokemonService);
 
-  public loading$ = new BehaviorSubject(true);
-  public error$ = new BehaviorSubject(null);
-
-  public user$ = this.pokemonService.getCurrentUser().pipe(
-    catchError((error) => {
-      this.error$.next(error);
-      return of(null);
-    }),
-    finalize(() => {
-      this.loading$.next(false);
-    }),
-  );
+  public user = injectQuery(() => ({
+    queryKey: ['user'],
+    queryFn: () => lastValueFrom(this.pokemonService.getCurrentUser()),
+  }));
 }
