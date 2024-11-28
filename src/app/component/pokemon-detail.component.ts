@@ -1,8 +1,8 @@
 import { Component, inject, input, OnInit } from '@angular/core';
 import { PokemonDetail, PokemonService } from '../service/pokemon.service';
 import { ActivatedRoute } from '@angular/router';
-import { JsonPipe } from '@angular/common';
-import { switchMap } from 'rxjs';
+import { AsyncPipe, JsonPipe } from '@angular/common';
+import { BehaviorSubject, catchError, finalize, of, switchMap } from 'rxjs';
 
 @Component({
   selector: 'app-pokemon-detail-skeleton',
@@ -81,11 +81,13 @@ export class PokemonDetailViewComponent {
   selector: 'app-pokemon-detail',
   template: `
     <div class="h-full rounded-md bg-detail p-4 border border-black bloc">
-      @if (loading) {
+      @if (loading$ | async) {
         <app-pokemon-detail-skeleton />
-      } @else if (error) {
+      }
+      @if (error$ | async; as error) {
         <span class="text-red-800">{{ error | json }}</span>
-      } @else if (pokemonDetail) {
+      }
+      @if (pokemonDetail$ | async; as pokemonDetail) {
         <app-pokemon-detail-view [pokemon]="pokemonDetail" />
         <button
           class="mt-4 self-end bg-blue-500 hover:bg-blue-600 text-white rounded-md p-2"
@@ -101,34 +103,30 @@ export class PokemonDetailViewComponent {
     PokemonDetailViewComponent,
     PokemonDetailSkeletonComponent,
     JsonPipe,
+    AsyncPipe,
   ],
 })
-export class PokemonDetailComponent implements OnInit {
+export class PokemonDetailComponent {
   private pokemonService = inject(PokemonService);
   private route = inject(ActivatedRoute);
 
-  public pokemonDetail: PokemonDetail | null = null;
-  public loading = true;
-  public error = null;
-
-  ngOnInit() {
-    this.route.params
-      .pipe(
-        switchMap((params) => {
-          return this.pokemonService.getPokemon(params['id']);
+  public loading$ = new BehaviorSubject(true);
+  public error$ = new BehaviorSubject(null);
+  public pokemonDetail$ = this.route.params.pipe(
+    switchMap((params) => {
+      this.loading$.next(true);
+      this.error$.next(null);
+      return this.pokemonService.getPokemon(params['id']).pipe(
+        catchError((error) => {
+          this.error$.next(error);
+          return of(null);
         }),
-      )
-      .subscribe({
-        next: (pokemon) => {
-          this.pokemonDetail = pokemon;
-          this.loading = false;
-        },
-        error: (error) => {
-          this.error = error;
-          this.loading = false;
-        },
-      });
-  }
+        finalize(() => {
+          this.loading$.next(false);
+        }),
+      );
+    }),
+  );
 
   public markAsFavourite(name: string) {
     this.pokemonService.setPokemonAsFavourite(name).subscribe(() => {

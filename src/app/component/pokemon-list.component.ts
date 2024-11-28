@@ -1,11 +1,8 @@
 import { Component, inject, input, OnInit } from '@angular/core';
-import {
-  Pokemon,
-  PokemonPage,
-  PokemonService,
-} from '../service/pokemon.service';
+import { Pokemon, PokemonService } from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
-import { JsonPipe } from '@angular/common';
+import { AsyncPipe, JsonPipe } from '@angular/common';
+import { BehaviorSubject, catchError, finalize, of, tap } from 'rxjs';
 
 @Component({
   selector: 'app-pokemon-list-skeleton',
@@ -69,11 +66,13 @@ export class PokemonListItemComponent {
   template: `
     <div class="h-full rounded-md bg-list p-4 border border-black">
       <ul class="flex flex-col gap-2">
-        @if (loading) {
+        @if (loading$ | async) {
           <app-pokemon-list-skeleton />
-        } @else if (error) {
+        }
+        @if (error$ | async; as error) {
           <span class="text-red-800">{{ error | json }}</span>
-        } @else if (pokemon) {
+        }
+        @if (pokemon$ | async; as pokemon) {
           @for (pokemon of pokemon.results; track pokemon.name) {
             <app-pokemon-list-item [pokemon]="pokemon" />
             @if (!$last) {
@@ -102,28 +101,28 @@ export class PokemonListItemComponent {
     }
   `,
   standalone: true,
-  imports: [PokemonListItemComponent, PokemonListSkeletonComponent, JsonPipe],
+  imports: [
+    PokemonListItemComponent,
+    PokemonListSkeletonComponent,
+    JsonPipe,
+    AsyncPipe,
+  ],
 })
-export class PokemonListComponent implements OnInit {
+export class PokemonListComponent {
   private pokemonService = inject(PokemonService);
 
-  public pokemon: PokemonPage | null = null;
-  public loading = true;
-  public error = null;
+  public loading$ = new BehaviorSubject(true);
+  public error$ = new BehaviorSubject(null);
 
-  ngOnInit() {
-    this.pokemonService.getAllPokemon().subscribe({
-      next: (pokemon) => {
-        this.pokemon = pokemon;
-      },
-      error: (error) => {
-        this.error = error;
-      },
-      complete: () => {
-        this.loading = false;
-      },
-    });
-  }
+  public pokemon$ = this.pokemonService.getAllPokemon().pipe(
+    catchError((error) => {
+      this.error$.next(error);
+      return of(null);
+    }),
+    finalize(() => {
+      this.loading$.next(false);
+    }),
+  );
 
   public loadMore() {
     alert('Kako???');

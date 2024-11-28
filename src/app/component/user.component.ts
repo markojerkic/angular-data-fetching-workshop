@@ -1,15 +1,20 @@
-import { Component, inject, input, OnInit } from '@angular/core';
+import { Component, inject, input } from '@angular/core';
 import { PokemonService, User } from '../service/pokemon.service';
 import { RouterLink } from '@angular/router';
-import { JsonPipe } from '@angular/common';
+import { AsyncPipe, JsonPipe } from '@angular/common';
+import { BehaviorSubject, catchError, finalize, of } from 'rxjs';
 
 @Component({
   selector: 'app-user-skeleton',
   template: `
-    <span
-      class="font-bold text-xl h-[4rem] bg-gray-300 animate-pulse bg-opacity-70"
-    ></span>
-    <span class=" h-[2rem] bg-gray-300 animate-pulse bg-opacity-70"> </span>
+    <div
+      class="rounded-md bg-user p-4 border border-black h-full flex flex-col justify-around"
+    >
+      <span
+        class="font-bold text-xl h-[4rem] bg-gray-300 animate-pulse bg-opacity-70"
+      ></span>
+      <span class=" h-[2rem] bg-gray-300 animate-pulse bg-opacity-70"> </span>
+    </div>
   `,
   standalone: true,
 })
@@ -48,35 +53,32 @@ export class UserViewComponent {
 @Component({
   selector: 'app-user',
   template: `
-    @if (loading) {
+    @if (loading$ | async) {
       <app-user-skeleton />
-    } @else if (error) {
+    }
+    @if (error$ | async; as error) {
       <span class="text-red-800">{{ error | json }}</span>
-    } @else if (user) {
+    }
+    @if (user$ | async; as user) {
       <app-user-view [user]="user"></app-user-view>
     }
   `,
   standalone: true,
-  imports: [UserSkeletonComponent, UserViewComponent, JsonPipe],
+  imports: [UserSkeletonComponent, UserViewComponent, JsonPipe, AsyncPipe],
 })
-export class UserComponent implements OnInit {
+export class UserComponent {
   private pokemonService = inject(PokemonService);
 
-  public user: User | null = null;
-  public loading = true;
-  public error = null;
+  public loading$ = new BehaviorSubject(true);
+  public error$ = new BehaviorSubject(null);
 
-  ngOnInit() {
-    this.pokemonService.getCurrentUser().subscribe({
-      next: (user) => {
-        this.user = user;
-      },
-      error: (error) => {
-        this.error = error;
-      },
-      complete: () => {
-        this.loading = false;
-      },
-    });
-  }
+  public user$ = this.pokemonService.getCurrentUser().pipe(
+    catchError((error) => {
+      this.error$.next(error);
+      return of(null);
+    }),
+    finalize(() => {
+      this.loading$.next(false);
+    }),
+  );
 }
