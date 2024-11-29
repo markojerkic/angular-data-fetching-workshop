@@ -137,7 +137,7 @@ export class PokemonDetailComponent {
     },
     onSuccess: () => {
       this.queryClient.invalidateQueries({
-        queryKey: ['pokemon-list'],
+        queryKey: ['pokemon', 'pokemon-list'],
       });
 
       this.queryClient.setQueryData(
