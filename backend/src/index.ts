@@ -1,17 +1,21 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
+import { writeFile, readFile } from 'node:fs/promises';
 
 const app = new Hono();
 app.use(cors());
 
-async function getFavouritePokemon(): Promise<string | undefined> {
-  return Bun.file('favourite.json')
-    .text()
-    .then((file) => JSON.parse(file).favourite);
+async function setFavouritePokemon(pokemon: string): Promise<void> {
+  return writeFile('favourite.json', JSON.stringify({ favourite: pokemon }));
 }
-
-async function setFavouritePokemon(name: string): Promise<void> {
-  await Bun.write('favourite.json', JSON.stringify({ favourite: name }));
+async function getFavouritePokemon(): Promise<string> {
+  try {
+    const data = await readFile('favourite.json', 'utf-8');
+    return JSON.parse(data).favourite;
+  } catch (e) {
+    console.error('Error reading favourite.json', e);
+    return '';
+  }
 }
 
 type PokemonResult = {
