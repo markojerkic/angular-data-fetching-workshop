@@ -16,22 +16,9 @@ Primljeno je više grana koje predstavljaju različite korake radionice.
 
 ## Kako pokrenuti radionicu?
 
-Za backend dio sam iskoristio [Bun](https://bun.sh), ali samo zato jer sam lijen bio da koristim Node fs API.
-
-Ili instalirajte [Bun](https://bun.sh), pa `bun install && bun dev`, ili zamijenite `getFavouritePokemon` i `setFavouritePokemon` funkcije da koriste Node fs API.
-
-```ts
-import { writeFile, readFile } from 'fs/promises';
-
-async function setFavouritePokemon(pokemon: string): Promise<void> {
-  return writeFile('favourite.json', JSON.stringify({ favourite: pokemon }));
-}
-async function getFavouritePokemon(): Promise<string> {
-  const data = await readFile('favourite.json', 'utf-8');
-  return JSON.parse(data).favourite;
-}
+```bash
+npm install
+npm run dev
 ```
 
-Nažalost, previše sam lijen da to ispravim sada na svih 7 grana.
-
-Ako ipak zamijenite implementaciju funkcija, možete koristiti `npm install && npm run dev` za pokretanje aplikacije.
+I odite na `http://localhost:4200`.

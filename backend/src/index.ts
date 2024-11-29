@@ -1,6 +1,7 @@
 import { Hono } from 'hono';
 import { cors } from 'hono/cors';
 import { writeFile, readFile } from 'node:fs/promises';
+import { serve } from '@hono/node-server';
 
 const app = new Hono();
 app.use(cors());
@@ -75,4 +76,10 @@ app
     return c.json({ message: 'Pokemon set as favourite' });
   });
 
-export default app;
+const port = 3000;
+console.log(`Server is running on http://localhost:${port}`);
+
+serve({
+  fetch: app.fetch,
+  port,
+});
